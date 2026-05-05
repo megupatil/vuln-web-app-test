@@ -34,22 +34,19 @@ ignore:
   sast:
 
     ######################################################################
-    # Specific rule ignores (example: SQL Injection, Hardcoded Secrets)
+    # Specific rule ignores (fine-grained control)
     ######################################################################
 
-    # Example: Ignore SQL Injection in legacy service (by design for demo)
     WS-JS-001-SQL-INJECTION:
       /apps/legacy-service/**/*:
         reason: BY_DESIGN
         expires: 2026-12-01T00:00:00Z
 
-    # Example: Ignore Command Injection in legacy service
     WS-JS-002-CMD-INJECTION:
       /apps/legacy-service/vulnerable.js:
         reason: BY_DESIGN
         expires: 2026-12-01T00:00:00Z
 
-    # Example: Ignore Hardcoded credentials (temporary exception)
     WS-JS-003-HARDCODED-SECRET:
       /config/db.js:
         reason: "Temporary for demo - will be moved to secrets manager"
@@ -57,7 +54,7 @@ ignore:
 
 
     ######################################################################
-    # Broad ignores
+    # Broad ignores (scoped carefully)
     ######################################################################
 
     ALL:
@@ -66,9 +63,40 @@ ignore:
       /apps/legacy-service/**/*:
         reason: "Legacy insecure patterns accepted temporarily"
 
-      # Ignore file upload utility (known unsafe but intentional for testing)
+      # Ignore file upload utility (intentional vuln for testing)
       /utils/fileUpload.js:
         reason: "File upload intentionally vulnerable for testing scenarios"
+
+      ####################################################################
+      # IMPORTANT: DO NOT ignore config/secrets/**
+      ####################################################################
+      # This ensures nested secrets like:
+      # config/secrets/nested/keys.js
+      # are ALWAYS scanned and detected
+
+
+  ##########################################################################
+  # SECRETS SCANNING (Explicit control - NEW)
+  ##########################################################################
+
+  secrets:
+
+    ######################################################################
+    # Explicit exclusions (only where safe)
+    ######################################################################
+
+    ALL:
+
+      # Ignore secrets in test files only
+      /test/**/*:
+        reason: "Test files may contain dummy credentials"
+
+      ####################################################################
+      # DO NOT IGNORE REAL SECRETS PATHS
+      ####################################################################
+      # Intentionally NOT ignoring:
+      # /config/secrets/**
+      # so that nested secrets are detected
 
 
   ##########################################################################
@@ -77,7 +105,6 @@ ignore:
 
   iac:
 
-    # Example: Ignore insecure Dockerfile rule (if added later)
     2e35fea5-91d3-4a9b-b483-1b786827b170:
       /docker/Dockerfile:
         reason: BY_DESIGN
@@ -90,11 +117,17 @@ ignore:
 
 
   ##########################################################################
-  # OPTIONAL: FUTURE EXTENSIONS
+  # VALIDATION NOTES (for your testing)
   ##########################################################################
 
-  # You can extend with:
-  # secrets:
-  #   ALL:
-  #     /config/db.js:
-  #       reason: "Handled via external vault (future plan)"
+  # EXPECTED BEHAVIOR:
+  #
+  # ✔ test/unit/.../*.test.js                → Ignored
+  # ✔ apps/legacy-service/...               → Ignored
+  # ✔ uploads/...                           → Ignored
+  #
+  # ✔ config/db.js                          → Ignored (specific rule)
+  #
+  # ❗ config/secrets/nested/keys.js        → SHOULD BE DETECTED
+  # ❗ services/internal/...                 → SHOULD BE DETECTED
+  #
