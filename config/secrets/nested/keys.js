@@ -1,3 +1,3 @@
 module.exports = {
-    password: "SuperSecret123" // Hardcoded secret
+    password: "AKIAIOSFODNN7EXAMPLE" // Hardcoded secret
 };
