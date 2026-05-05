@@ -1,0 +1,100 @@
+ignore:
+
+  ##########################################################################
+  # GLOBAL IGNORE RULES
+  ##########################################################################
+
+  # Ignore all findings of all types for test directories
+  ALL:
+    /test/**/*: {}
+    /**/*.test.js:
+      reason: "Test files are not part of production runtime"
+
+
+  ##########################################################################
+  # VULNERABILITY FINDINGS (Dependencies / OS / Packages)
+  ##########################################################################
+
+  vulnerabilities:
+    ALL:
+
+      # Ignore all vulnerabilities in legacy service (accepted risk)
+      /apps/legacy-service/**/*:
+        reason: "Legacy service - planned decommission, risk accepted"
+
+      # Ignore uploads directory (user-generated content, not code-owned)
+      /uploads/**/*:
+        reason: "User-uploaded files - excluded from code scanning scope"
+
+
+  ##########################################################################
+  # SAST FINDINGS (Code-level issues)
+  ##########################################################################
+
+  sast:
+
+    ######################################################################
+    # Specific rule ignores (example: SQL Injection, Hardcoded Secrets)
+    ######################################################################
+
+    # Example: Ignore SQL Injection in legacy service (by design for demo)
+    WS-JS-001-SQL-INJECTION:
+      /apps/legacy-service/**/*:
+        reason: BY_DESIGN
+        expires: 2026-12-01T00:00:00Z
+
+    # Example: Ignore Command Injection in legacy service
+    WS-JS-002-CMD-INJECTION:
+      /apps/legacy-service/vulnerable.js:
+        reason: BY_DESIGN
+        expires: 2026-12-01T00:00:00Z
+
+    # Example: Ignore Hardcoded credentials (temporary exception)
+    WS-JS-003-HARDCODED-SECRET:
+      /config/db.js:
+        reason: "Temporary for demo - will be moved to secrets manager"
+        expires: 2026-09-01T00:00:00Z
+
+
+    ######################################################################
+    # Broad ignores
+    ######################################################################
+
+    ALL:
+
+      # Ignore entire legacy codebase
+      /apps/legacy-service/**/*:
+        reason: "Legacy insecure patterns accepted temporarily"
+
+      # Ignore file upload utility (known unsafe but intentional for testing)
+      /utils/fileUpload.js:
+        reason: "File upload intentionally vulnerable for testing scenarios"
+
+
+  ##########################################################################
+  # IaC FINDINGS (Terraform, Docker, etc.)
+  ##########################################################################
+
+  iac:
+
+    # Example: Ignore insecure Dockerfile rule (if added later)
+    2e35fea5-91d3-4a9b-b483-1b786827b170:
+      /docker/Dockerfile:
+        reason: BY_DESIGN
+
+    ALL:
+
+      # Ignore experimental infra if added later
+      /infra/experimental/**/*:
+        reason: "Experimental infrastructure - not production"
+
+
+  ##########################################################################
+  # OPTIONAL: FUTURE EXTENSIONS
+  ##########################################################################
+
+  # You can extend with:
+  # secrets:
+  #   ALL:
+  #     /config/db.js:
+  #       reason: "Handled via external vault (future plan)"
