@@ -1,0 +1,6 @@
+// Command Injection
+const { exec } = require('child_process');
+
+function run(cmd) {
+    exec(cmd);
+}
